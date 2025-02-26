@@ -56,7 +56,7 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
 
   // Get debug mode from environment variable - if DEBUG is set to any value, run in non-headless mode
   const isDebugMode = Deno.env.has("DEBUG");
-  const headless = !isDebugMode ? false : "new";
+  const headless = !isDebugMode ? "new" : false;
 
   console.log(`Chrome path: ${chromePath}`);
   console.log(`Headless mode: ${headless}`);
