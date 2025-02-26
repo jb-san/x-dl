@@ -13,14 +13,18 @@ deno run --allow-all main.ts -h
 
 # Specify custom output path and filename
 deno run --allow-all main.ts -o ./videos/custom-name.mp4 <tweet_url>
+
+# Increase timeout for slow connections
+deno run --allow-all main.ts -t 120 <tweet_url>
 ```
 
 ### Command Line Options
 
-| Option         | Description                           |
-| -------------- | ------------------------------------- |
-| `-o, --output` | Specify the output file path and name |
-| `-h, --help`   | Show help message                     |
+| Option          | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| `-o, --output`  | Specify the output file path and name                 |
+| `-t, --timeout` | Set timeout in seconds for page loading (default: 60) |
+| `-h, --help`    | Show help message                                     |
 
 ### Examples
 
@@ -30,6 +34,12 @@ deno run --allow-all main.ts https://x.com/MarcusHouse/status/189418841544214550
 
 # Download a video with custom output path
 deno run --allow-all main.ts -o ~/Downloads/my-video.mp4 https://x.com/MarcusHouse/status/1894188415442145507
+
+# Download with extended timeout for slow connections
+deno run --allow-all main.ts -t 180 https://x.com/MarcusHouse/status/1894188415442145507
+
+# Combine multiple options
+deno run --allow-all main.ts -o ./videos/high-quality.mp4 -t 120 https://x.com/MarcusHouse/status/1894188415442145507
 ```
 
 ### Environment Variables

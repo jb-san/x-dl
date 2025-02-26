@@ -5,12 +5,16 @@ import puppeteer from "npm:puppeteer@21.6.1";
 
 // Parse command line arguments
 const parsedArgs = parse(Deno.args, {
-  string: ["o"],
+  string: ["o", "t"],
   alias: {
     o: "output",
     h: "help",
+    t: "timeout",
   },
   boolean: ["help"],
+  default: {
+    t: "60", // Default timeout in seconds
+  },
 });
 
 // Function to display help message
@@ -23,6 +27,7 @@ Usage:
 
 Options:
   -o, --output <path>     Specify the output file path and name
+  -t, --timeout <seconds> Set timeout in seconds for page loading (default: 60)
   -h, --help              Show this help message
 
 Environment Variables:
@@ -32,6 +37,7 @@ Environment Variables:
 Examples:
   deno run --allow-all main.ts https://x.com/user/status/123456789
   deno run --allow-all main.ts -o ./videos/my-video.mp4 https://x.com/user/status/123456789
+  deno run --allow-all main.ts -t 120 https://x.com/user/status/123456789
   `);
   Deno.exit(0);
 }
@@ -44,6 +50,24 @@ if (parsedArgs.help || parsedArgs._.length === 0) {
 // Function to download a video from X (Twitter)
 async function downloadXVideo(url: string, outputPath: string): Promise<void> {
   console.log(`Processing URL: ${url}`);
+
+  // Parse timeout setting (in seconds) and convert to milliseconds
+  const timeoutSec = parseInt(parsedArgs.timeout as string, 10);
+  const navigationTimeoutMs = timeoutSec * 1000;
+  const selectorTimeoutMs = Math.max(
+    5000,
+    Math.floor(navigationTimeoutMs / 12)
+  ); // Proportionally set selector timeout
+  const networkWaitTimeMs = Math.max(
+    10000,
+    Math.floor(navigationTimeoutMs / 3)
+  ); // Proportionally set network wait time
+
+  console.log(
+    `Timeouts: navigation=${timeoutSec}s, selector=${
+      selectorTimeoutMs / 1000
+    }s, network wait=${networkWaitTimeMs / 1000}s`
+  );
 
   // Create directory for output file if it doesn't exist
   await ensureDir(dirname(outputPath));
@@ -168,7 +192,10 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
 
     // Navigate to the X post
     console.log("Loading page:", targetUrl);
-    await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 60000 });
+    await page.goto(targetUrl, {
+      waitUntil: "networkidle2",
+      timeout: navigationTimeoutMs,
+    });
     console.log("Page loaded");
 
     // Try different selectors for videos
@@ -187,7 +214,7 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
       try {
         console.log(`Trying to find video with selector: ${selector}`);
         const videoElement = await page.waitForSelector(selector, {
-          timeout: 5000,
+          timeout: selectorTimeoutMs,
         });
         if (videoElement) {
           console.log(`Video element found with selector: ${selector}`);
@@ -238,8 +265,10 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
     }
 
     // Wait longer to capture all network requests
-    console.log("Waiting to capture all media URLs...");
-    await new Promise((resolve) => setTimeout(resolve, 20000));
+    console.log(
+      `Waiting to capture all media URLs (${networkWaitTimeMs / 1000}s)...`
+    );
+    await new Promise((resolve) => setTimeout(resolve, networkWaitTimeMs));
 
     // If we haven't found any videos yet, try scrolling and interacting with the page
     if (mediaUrls.mp4Files.size === 0 && mediaUrls.m3u8Playlists.size === 0) {
