@@ -26,10 +26,10 @@ deno run --allow-all main.ts -o ./videos/custom-name.mp4 <tweet_url>
 
 ```bash
 # Download a video with default output path (./output/[tweet_id].mp4)
-deno run --allow-all main.ts https://x.com/Rainmaker1973/status/1627578783073988609
+deno run --allow-all main.ts https://x.com/MarcusHouse/status/1894188415442145507
 
 # Download a video with custom output path
-deno run --allow-all main.ts -o ~/Downloads/my-video.mp4 https://x.com/Rainmaker1973/status/1627578783073988609
+deno run --allow-all main.ts -o ~/Downloads/my-video.mp4 https://x.com/MarcusHouse/status/1894188415442145507
 ```
 
 ### Environment Variables

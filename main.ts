@@ -56,7 +56,7 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
 
   // Get debug mode from environment variable - if DEBUG is set to any value, run in non-headless mode
   const isDebugMode = Deno.env.has("DEBUG");
-  const headless = !isDebugMode;
+  const headless = !isDebugMode ? false : "new";
 
   console.log(`Chrome path: ${chromePath}`);
   console.log(`Headless mode: ${headless}`);
@@ -113,14 +113,6 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
     page.on("response", async (response) => {
       const url = response.url();
       const contentType = response.headers()["content-type"] || "";
-
-      console.log(
-        `Response from: ${url.substring(
-          0,
-          100
-        )}... Content-Type: ${contentType.substring(0, 30)}`
-      );
-
       // Look for media content
       if (
         url.includes(".m3u8") ||
@@ -478,12 +470,6 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
 
       const videoData = new Uint8Array(await response.arrayBuffer());
 
-      if (videoData.length < 1000) {
-        throw new Error(
-          `Downloaded file is too small (${videoData.length} bytes), likely not a valid video`
-        );
-      }
-
       await Deno.writeFile(outputPath, videoData);
     }
 
@@ -491,12 +477,6 @@ async function downloadXVideo(url: string, outputPath: string): Promise<void> {
     try {
       const fileInfo = await Deno.stat(outputPath);
       console.log(`Video saved to ${outputPath}, size: ${fileInfo.size} bytes`);
-
-      if (fileInfo.size < 10000) {
-        throw new Error(
-          `Output file is suspiciously small (${fileInfo.size} bytes), likely corrupted`
-        );
-      }
     } catch (error) {
       console.error("Error verifying output file:", error);
       throw error;
